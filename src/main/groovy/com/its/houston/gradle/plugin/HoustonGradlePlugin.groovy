@@ -21,6 +21,7 @@ import org.gradle.api.logging.LogLevel
  * NOTE: The build.gradle from which this Plugin will be used must contain the dependency configuration 'houston' as
  * it will be used to add compile and runtime dependencies.
  * <p />
+ * 
  */
 class HoustonGradlePlugin
 implements Plugin<Project>

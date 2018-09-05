@@ -7,7 +7,7 @@ import org.gradle.api.tasks.TaskAction
  * <code></code>
  * <p/>
  * <p />
- * @author rajiv@itstcb.com
+ * @author Kent
  * @since May 2012
  */
 

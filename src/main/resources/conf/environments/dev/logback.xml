@@ -1,0 +1,88 @@
+<configuration>
+
+ <jmxConfigurator />
+
+ <!-- ERROR, INFO, DEBUG, WARN -->
+  <appender name="CONSOLE"
+    class="ch.qos.logback.core.ConsoleAppender">
+    <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+      <pattern># [%d{HH:mm:ss.SSS}] [%-5level] [%lo{1}] [%method] [%msg]%n</pattern>
+    </encoder>
+  </appender>
+
+  <!-- Rolling Log File Appender configuration -->
+  <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <file>../logs/houston.log</file>
+    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+      <!-- daily rollover -->
+      <fileNamePattern>../logs/houston.%d{yyyy-MM-dd}.log</fileNamePattern>
+      <!-- keep 14 days' worth of history -->
+      <maxHistory>14</maxHistory>
+    </rollingPolicy>
+    <Append>false</Append>
+    <BufferedIO>false</BufferedIO>
+    <ImmediateFlush>true</ImmediateFlush>
+    <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+      <pattern># [%d{HH:mm:ss.SSS}] [%-5level] [%lo{1}] [%method] [%msg]%n</pattern>
+    </encoder>
+  </appender>   
+
+  <!-- Begin Perf4J appenders -->
+  <!--
+    This JMX appender creates an MBean and publishes it to the platform MBean server by
+    default.
+  -->
+  <appender name="perf4jJmxAppender" class="org.perf4j.logback.JmxAttributeStatisticsAppender">
+    <!--
+      You must specify the tag names whose statistics should be exposed as
+      MBean attributes.
+    -->
+    <TagNamesToExpose>PEGASUS.ARI.AREA_AVAILABILITY, PEGASUS.ARI.SINGLE_PROPERTY, PEGASUS.RATE.RATE_PLAN_INFO, PEGASUS.RES.NEW_RESERVATION, PEGASUS.RES.MODIFY_RESERVATION, PEGASUS.RES.CANCEL_RESERVATION, PEGASUS.RES.IGNORE_RESERVATION, PEGASUS.RES.END_RESERVATION</TagNamesToExpose>
+    <!--
+      Override the default MBean name of org.perf4j:type=StatisticsExposingMBean,name=Perf4J
+    -->
+    <MBeanName>OPENPATH:name=STATS</MBeanName>
+  </appender>
+
+   <!--
+     This AsyncCoalescingStatisticsAppender groups StopWatch log messages
+     into GroupedTimingStatistics messages which it sends on the
+     file appender defined below
+  -->
+  <appender name="CoalescingStatistics" class="org.perf4j.logback.AsyncCoalescingStatisticsAppender">
+    <param name="TimeSlice" value="10000"/>
+    <param name="CreateRollupStatistics" value="true" />
+    <param name="DownstreamLogLevel" value="INFO" />
+    <!-- We add the JMX Appender reference onto the CoalescingStatistics -->
+    <appender-ref ref="perf4jJmxAppender"/>
+  </appender>
+
+  
+  <logger name="org.perf4j.TimingLogger" additivity="false">
+    <level value="INFO"/>
+    <appender-ref ref="CoalescingStatistics"/>
+    <appender-ref ref="CONSOLE"/>
+    <appender-ref ref="FILE"/>
+  </logger>
+ <!-- End Perf4J appenders -->   
+    
+  <logger name="org.springframework">
+    <level value="INFO" />
+  </logger>
+
+  <logger name="org.apache.cxf">
+    <level value="INFO" />
+  </logger>
+
+  <logger name="com.its">
+    <level value="DEBUG" />
+  </logger>
+
+  <root>
+    <level value="INFO" />
+    <appender-ref ref="CONSOLE" />
+    <appender-ref ref="FILE" />
+  </root>
+
+</configuration>
+

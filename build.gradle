@@ -1,0 +1,98 @@
+/**
+ *
+ *
+ */
+
+/** *************************************************************************************************************** **/
+/** General Configuration                                                                                           **/
+/** *************************************************************************************************************** **/
+project.description = 'Gradle Plugin for the Houston Container'
+
+apply plugin: 'maven'
+apply plugin: 'idea'
+apply plugin: 'eclipse'
+apply plugin: 'groovy'
+apply plugin: 'java'
+
+group = 'com.its.houston'
+version = project.property('houston.gradleplugin.version')
+
+project.ext.artifactoryUserId = "itsdev"
+project.ext.artifactoryPasssword = "{DESede}b/Qp5aJisNKBuEJxcrkZzg=="
+project.ext.artifactoryBaseURL = "http://itstcb.com/artifactory"
+project.ext.artifactoryRemoteRepoURL = "${artifactoryBaseURL}/remote-repo"
+project.ext.artifactorySnapshotURL = "${artifactoryBaseURL}/lbs-snapshot-local"
+project.ext.artifactoryReleaseURL = "${artifactoryBaseURL}/libs-release-local"
+
+// Configure the auto generated pom.xml properties when deployed to the local Maven .m2 repo
+configure(install.repositories.mavenInstaller) {
+    pom.project {
+      version "${project.version}"
+      artifactId "$project.group-${project.name}"
+    }
+}
+
+// Dependency configurations
+configurations {
+  runtime {
+    description = 'Runtime classpath'
+    transitive = false
+  }
+  houston {
+    description = 'All Houston application dependencies (compile + runtime)'
+    transitive = false
+  }
+  compile {
+    extendsFrom houston
+    description = 'Houston appliation compile time dependencies'
+    transitive = false
+  }
+}
+
+dependencies {
+  compile gradleApi()
+  //groovy localGroovy()
+  compile 'org.codehaus.groovy:groovy-all:2.4.12'
+}
+
+// Artifactory repos used to retrive artifacts required at compile time. The "remote-repos" is a
+// virtual repo in Artifactory
+repositories {
+  //maven {
+  //  credentials {
+  //    username "${project.ext.artifactoryUserId}"
+  //    password "${project.ext.artifactoryPasssword}"
+  //  }
+  //  url "http://itstcb.com/artifactory/remote-repos"
+  //}
+  mavenCentral()
+}
+
+// Jar file to build and its configuration properties
+jar {
+  archiveName = "${project.group}-${project.name}-${project.version}.jar"
+}
+
+// Artifactory configuration to be used when uploading the built artifacts
+uploadArchives {
+  repositories.mavenDeployer {
+    pom.groupId = "${project.group}"
+    pom.artifactId = "${project.version}"
+    pom.version = "${project.version}"
+    uniqueVersion = false
+
+    /** Artifactory URL to upload Release artifacts **/
+    repository( url: "${project.ext.artifactoryReleaseURL}" ) {
+      authentication( userName: "${project.ext.artifactoryUserId}", password: "${project.ext.artifactoryPasssword}" )
+      snapshots( enabled: "false" )
+      releases( enabled: "true" )
+    }
+
+    /** Artifactory URL to upload SNAPSHOT artifacts **/
+    snapshotRepository( url: "${project.ext.artifactorySnapshotURL}" ) {
+      authentication( userName: "${project.ext.artifactoryUserId}", password: "${project.ext.artifactoryPasssword}" )
+      snapshots( enabled: "true" )
+      releases( enabled: "false" )
+    }
+  }
+}
